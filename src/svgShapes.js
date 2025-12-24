@@ -1,5 +1,6 @@
 import { BlueprintSketcher } from "replicad";
 import { parsePath, absolutize } from "path-data-parser";
+import { samePoint } from "./common";
 
 export const roundedRectangleBlueprint = ({
   x = 0,
@@ -163,7 +164,7 @@ const parseArgs = (command, previousPoint, previousControls) => {
   throw new Error(`Unknown command ${command.key} ${command.data.join(", ")}`);
 };
 
-export const SVGPathBlueprint = function* (SVGPath, alwaysClosePaths) {
+export const SVGPathBlueprint = function* (SVGPath, alwaysClosePaths, firstPointPrecision) {
   const commands = absolutize(parsePath(SVGPath));
 
   let sk = null;
@@ -184,6 +185,10 @@ export const SVGPathBlueprint = function* (SVGPath, alwaysClosePaths) {
       arcConfig = [],
     } = parseArgs(command, lastPoint, lastControls);
 
+    if (firstPointPrecision && sk && samePoint(sk.firstPoint, p, firstPointPrecision)) {
+      p.splice(0, p.length, ...sk.firstPoint);
+    }
+
     if (command.key === "M") {
       if (sk) {
         if (alwaysClosePaths) {
@@ -201,8 +206,7 @@ export const SVGPathBlueprint = function* (SVGPath, alwaysClosePaths) {
     // We do not draw line of length 0
     if (
       lastPoint &&
-      Math.abs(p[0] - lastPoint[0]) < 1e-9 &&
-      Math.abs(p[1] - lastPoint[1]) < 1e-9
+      samePoint(p, lastPoint, 1e-9)
     ) {
       lastPoint = p;
       lastControls = { control1, control2 };

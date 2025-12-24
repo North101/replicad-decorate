@@ -1,5 +1,13 @@
 import { GCWithScope, getOC, drawFaceOutline } from "replicad";
 
+export const samePoint = (
+  [x0, y0],
+  [x1, y1],
+  precision = 1e-6
+) => {
+  return Math.abs(x0 - x1) <= precision && Math.abs(y0 - y1) <= precision;
+};
+
 export const range = (size) => [...Array(size).keys()];
 
 export const mergeDrawings = (drawings) => {
